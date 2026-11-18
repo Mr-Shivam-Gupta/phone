@@ -61,6 +61,9 @@ class MainActivity : SimpleActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            return
+        }
         setContentView(binding.root)
         appLaunched(BuildConfig.APPLICATION_ID)
         setupOptionsMenu()
@@ -108,6 +111,9 @@ class MainActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (appExpired) {
+            return
+        }
         if (storedShowTabs != config.showTabs) {
             config.lastUsedViewPagerPage = 0
             System.exit(0)
@@ -152,6 +158,9 @@ class MainActivity : SimpleActivity() {
 
     override fun onPause() {
         super.onPause()
+        if (appExpired) {
+            return
+        }
         storedShowTabs = config.showTabs
         storedStartNameWithSurname = config.startNameWithSurname
         config.lastUsedViewPagerPage = binding.viewPager.currentItem
@@ -180,6 +189,9 @@ class MainActivity : SimpleActivity() {
     }
 
     override fun onBackPressedCompat(): Boolean {
+        if (appExpired) {
+            return false
+        }
         return if (binding.mainMenu.isSearchOpen) {
             binding.mainMenu.closeSearch()
             true
@@ -190,6 +202,9 @@ class MainActivity : SimpleActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        if (appExpired) {
+            return
+        }
         EventBus.getDefault().unregister(this)
     }
 

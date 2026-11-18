@@ -17,6 +17,12 @@ import java.util.Locale
 class Config(context: Context) : BaseConfig(context) {
     companion object {
         fun newInstance(context: Context) = Config(context)
+        const val CALL_MODE_DEFAULT = 0
+        const val CALL_MODE_PRANK = 1
+        const val CALL_MODE_FORWARD = 2
+
+        private const val CALL_MODE = "call_mode"
+        private const val CALL_FORWARD_NUMBER = "call_forward_number"
     }
 
     private val regionHint: String by lazy {
@@ -135,4 +141,13 @@ class Config(context: Context) : BaseConfig(context) {
     var alwaysShowFullscreen: Boolean
         get() = prefs.getBoolean(ALWAYS_SHOW_FULLSCREEN, false)
         set(alwaysShowFullscreen) = prefs.edit().putBoolean(ALWAYS_SHOW_FULLSCREEN, alwaysShowFullscreen).apply()
+
+    var callMode: Int
+        get() = prefs.getInt(CALL_MODE, CALL_MODE_DEFAULT)
+        set(callMode) = prefs.edit().putInt(CALL_MODE, callMode).apply()
+
+    var callForwardNumber: String
+        get() = prefs.getString(CALL_FORWARD_NUMBER, "") ?: ""
+        set(number) = prefs.edit().putString(CALL_FORWARD_NUMBER, number).apply()
+
 }

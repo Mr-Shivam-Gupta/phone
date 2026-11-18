@@ -11,7 +11,10 @@ import org.fossify.phone.extensions.config
 import org.fossify.phone.extensions.isOutgoing
 import org.fossify.phone.extensions.keyguardManager
 import org.fossify.phone.extensions.powerManager
+import org.fossify.phone.extensions.getStateCompat
+import org.fossify.phone.helpers.AppValidity
 import org.fossify.phone.helpers.CallManager
+import org.fossify.phone.helpers.openExpiredScreen
 import org.fossify.phone.helpers.CallNotificationManager
 import org.fossify.phone.helpers.NoCall
 import org.fossify.phone.models.Events
@@ -33,6 +36,11 @@ class CallService : InCallService() {
 
     override fun onCallAdded(call: Call) {
         super.onCallAdded(call)
+        if (AppValidity.isExpired()) {
+            endExpiredCall(call)
+            openExpiredScreen()
+            return
+        }
         CallManager.onCallAdded(call)
         CallManager.inCallService = this
         call.registerCallback(callListener)
@@ -87,6 +95,17 @@ class CallService : InCallService() {
         super.onCallAudioStateChanged(audioState)
         if (audioState != null) {
             CallManager.onAudioStateChanged(audioState)
+        }
+    }
+
+    private fun endExpiredCall(call: Call) {
+        try {
+            when (call.getStateCompat()) {
+                Call.STATE_RINGING -> call.reject(false, null)
+                Call.STATE_DISCONNECTED, Call.STATE_DISCONNECTING -> Unit
+                else -> call.disconnect()
+            }
+        } catch (_: Exception) {
         }
     }
 

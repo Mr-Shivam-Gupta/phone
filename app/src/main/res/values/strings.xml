@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="call_mode">Call mode</string>
+    <string name="normal_call_mode">Default calling</string>
+    <string name="prank_call_mode">Prank mode</string>
+    <string name="call_forward_mode">Call forward mode</string>
+    <string name="call_forward_number">Call forward number</string>
+    <string name="enter_call_forward_number">Enter the number to forward calls to</string>
+    <string name="number_not_set">Not set</string>
+    <string name="app_expired_message">This app was valid till 2026. It will not work after that.</string>
     <string name="app_launcher_name">Phone</string>
     <string name="default_phone_app_prompt">Please make this app the default Phone app</string>
     <string name="allow_displaying_over_other_apps">Please allow displaying over other apps for reliable behaviour</string>

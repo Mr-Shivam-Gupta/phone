@@ -28,6 +28,9 @@ class ManageSpeedDialActivity : SimpleActivity(), RemoveSpeedDialListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            return
+        }
         setContentView(binding.root)
 
         binding.apply {
@@ -53,11 +56,17 @@ class ManageSpeedDialActivity : SimpleActivity(), RemoveSpeedDialListener {
 
     override fun onResume() {
         super.onResume()
+        if (appExpired) {
+            return
+        }
         setupTopAppBar(binding.manageSpeedDialAppbar, NavigationIcon.Arrow)
     }
 
     override fun onStop() {
         super.onStop()
+        if (appExpired) {
+            return
+        }
         config.speedDial = Gson().toJson(speedDialValues)
     }
 

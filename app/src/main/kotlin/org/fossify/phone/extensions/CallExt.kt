@@ -22,21 +22,27 @@ import org.fossify.phone.BuildConfig
 import org.fossify.phone.activities.DialerActivity
 import org.fossify.phone.activities.SimpleActivity
 import org.fossify.phone.dialogs.SelectSIMDialog
+import org.fossify.phone.helpers.AppValidity
+import org.fossify.phone.helpers.showExpiredScreen
 
 fun SimpleActivity.startCallIntent(
     recipient: String,
     forceSimSelector: Boolean = false
 ) {
+    if (AppValidity.isExpired()) {
+        showExpiredScreen()
+        return
+    }
     if (isDefaultDialer()) {
         getHandleToUse(
             intent = null,
             phoneNumber = recipient,
             forceSimSelector = forceSimSelector
         ) { handle ->
-            launchCallIntent(recipient, handle)
+            launchCallIntent(resolveOutgoingCallNumber(recipient), handle)
         }
     } else {
-        launchCallIntent(recipient, null)
+        launchCallIntent(resolveOutgoingCallNumber(recipient), null)
     }
 }
 
@@ -55,15 +61,31 @@ fun SimpleActivity.startCallWithConfirmationCheck(
 }
 
 fun SimpleActivity.startCallWithConfirmationCheck(contact: Contact) {
+    if (AppValidity.isExpired()) {
+        showExpiredScreen()
+        return
+    }
     if (config.showCallConfirmation) {
         CallConfirmationDialog(
             activity = this,
             callee = contact.getNameToDisplay()
         ) {
-            initiateCall(contact) { launchCallIntent(it) }
+            initiateCall(contact) {
+                if (AppValidity.isExpired()) {
+                    showExpiredScreen()
+                    return@initiateCall
+                }
+                launchCallIntent(resolveOutgoingCallNumber(it))
+            }
         }
     } else {
-        initiateCall(contact) { launchCallIntent(it) }
+        initiateCall(contact) {
+            if (AppValidity.isExpired()) {
+                showExpiredScreen()
+                return@initiateCall
+            }
+            launchCallIntent(resolveOutgoingCallNumber(it))
+        }
     }
 }
 
@@ -71,12 +93,20 @@ fun BaseSimpleActivity.callContactWithSim(
     recipient: String,
     useMainSIM: Boolean
 ) {
+    if (AppValidity.isExpired()) {
+        (this as? SimpleActivity)?.showExpiredScreen()
+        return
+    }
     handlePermission(PERMISSION_READ_PHONE_STATE) {
+        if (AppValidity.isExpired()) {
+            (this as? SimpleActivity)?.showExpiredScreen()
+            return@handlePermission
+        }
         val wantedSimIndex = if (useMainSIM) 0 else 1
         val handle = getAvailableSIMCardLabels()
             .sortedBy { it.id }
             .getOrNull(wantedSimIndex)?.handle
-        launchCallIntent(recipient, handle)
+        launchCallIntent(resolveOutgoingCallNumber(recipient), handle)
     }
 }
 

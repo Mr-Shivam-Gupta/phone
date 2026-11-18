@@ -68,6 +68,10 @@ class CallActivity : SimpleActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            CallManager.reject()
+            return
+        }
         setContentView(binding.root)
 
         if (CallManager.getPhoneState() == NoCall) {
@@ -95,11 +99,18 @@ class CallActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (appExpired) {
+            CallManager.reject()
+            return
+        }
         updateState()
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        if (appExpired) {
+            return
+        }
         CallManager.removeListener(callCallback)
         disableProximitySensor()
 
@@ -109,6 +120,9 @@ class CallActivity : SimpleActivity() {
     }
 
     override fun onBackPressedCompat(): Boolean {
+        if (appExpired) {
+            return false
+        }
         if (binding.dialpadWrapper.isVisible()) {
             hideDialpad()
             return true
@@ -655,7 +669,9 @@ class CallActivity : SimpleActivity() {
         when (state) {
             Call.STATE_RINGING -> callRinging()
             Call.STATE_ACTIVE -> callStarted()
-            Call.STATE_DISCONNECTED -> endCall()
+            // Telecom has already ended this call. Only an explicit user action
+            // should send a reject/disconnect command back to Telecom.
+            Call.STATE_DISCONNECTED -> endCall(disconnectCall = false)
             Call.STATE_CONNECTING, Call.STATE_DIALING -> initOutgoingCallUI()
             Call.STATE_SELECT_PHONE_ACCOUNT -> showPhoneAccountPicker()
         }
@@ -757,8 +773,10 @@ class CallActivity : SimpleActivity() {
         }
     }
 
-    private fun endCall() {
-        CallManager.reject()
+    private fun endCall(disconnectCall: Boolean = true) {
+        if (disconnectCall) {
+            CallManager.reject()
+        }
         disableProximitySensor()
         audioRouteChooserDialog?.dismissAllowingStateLoss()
 

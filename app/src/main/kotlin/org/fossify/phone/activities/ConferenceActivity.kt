@@ -12,6 +12,9 @@ class ConferenceActivity : SimpleActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            return
+        }
         setContentView(binding.root)
         binding.apply {
             setupEdgeToEdge(padBottomSystem = listOf(conferenceList))
@@ -22,6 +25,9 @@ class ConferenceActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (appExpired) {
+            return
+        }
         setupTopAppBar(binding.conferenceAppbar, NavigationIcon.Arrow)
     }
 }

@@ -92,6 +92,9 @@ class DialpadActivity : SimpleActivity() {
     @Suppress("LongMethod")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            return
+        }
         setContentView(binding.root)
         hasRussianLocale = Locale.getDefault().language == "ru"
 
@@ -222,6 +225,9 @@ class DialpadActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (appExpired) {
+            return
+        }
         updateTextColors(binding.dialpadHolder)
         binding.dialpadClearChar.applyColorFilter(getProperTextColor())
         setupTopAppBar(binding.dialpadAppbar, NavigationIcon.Arrow)

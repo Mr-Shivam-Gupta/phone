@@ -11,12 +11,16 @@ import org.fossify.commons.extensions.*
 import org.fossify.commons.helpers.REQUEST_CODE_SET_DEFAULT_DIALER
 import org.fossify.phone.R
 import org.fossify.phone.extensions.getHandleToUse
+import org.fossify.phone.extensions.resolveOutgoingCallNumber
 
 class DialerActivity : SimpleActivity() {
     private var callNumber: Uri? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            return
+        }
 
         if (intent.action == Intent.ACTION_CALL && intent.data != null) {
             callNumber = intent.data
@@ -36,19 +40,16 @@ class DialerActivity : SimpleActivity() {
     @SuppressLint("MissingPermission")
     private fun initOutgoingCall() {
         try {
-            if (isNumberBlocked(callNumber.toString().replace("tel:", ""), getBlockedNumbers())) {
-                toast(R.string.calling_blocked_number)
-                finish()
-                return
-            }
+            val originalNumber = callNumber.toString().replace("tel:", "")
+            val destinationNumber = resolveOutgoingCallNumber(originalNumber)
 
-            getHandleToUse(intent, callNumber.toString()) { handle ->
+            getHandleToUse(intent, originalNumber) { handle ->
                 if (handle != null) {
                     Bundle().apply {
                         putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, handle)
                         putBoolean(TelecomManager.EXTRA_START_CALL_WITH_VIDEO_STATE, false)
                         putBoolean(TelecomManager.EXTRA_START_CALL_WITH_SPEAKERPHONE, false)
-                        telecomManager.placeCall(callNumber, this)
+                        telecomManager.placeCall(Uri.fromParts("tel", destinationNumber, null), this)
                     }
                 }
                 finish()

@@ -3,6 +3,9 @@ package org.fossify.phone.activities
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.InputType
+import android.widget.EditText
+import androidx.appcompat.app.AlertDialog
 import android.view.Menu
 import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.serialization.SerializationException
@@ -13,6 +16,7 @@ import org.fossify.commons.dialogs.RadioGroupDialog
 import org.fossify.commons.extensions.baseConfig
 import org.fossify.commons.extensions.beVisibleIf
 import org.fossify.commons.extensions.getFontSizeText
+import org.fossify.commons.extensions.getAlertDialogBuilder
 import org.fossify.commons.extensions.getProperPrimaryColor
 import org.fossify.commons.extensions.showErrorToast
 import org.fossify.commons.extensions.toast
@@ -41,6 +45,7 @@ import org.fossify.phone.extensions.canLaunchAccountsConfiguration
 import org.fossify.phone.extensions.config
 import org.fossify.phone.extensions.launchAccountsConfiguration
 import org.fossify.phone.helpers.RecentsHelper
+import org.fossify.phone.helpers.Config
 import org.fossify.phone.models.RecentCall
 import java.util.Locale
 import kotlin.system.exitProcess
@@ -77,6 +82,9 @@ class SettingsActivity : SimpleActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (appExpired) {
+            return
+        }
         setContentView(binding.root)
         setupOptionsMenu()
         refreshMenuItems()
@@ -89,6 +97,9 @@ class SettingsActivity : SimpleActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (appExpired) {
+            return
+        }
         setupTopAppBar(binding.settingsAppbar, NavigationIcon.Arrow)
 
         setupCustomizeColors()
@@ -112,6 +123,8 @@ class SettingsActivity : SimpleActivity() {
         setupDisableProximitySensor()
         setupDisableSwipeToAnswer()
         setupAlwaysShowFullscreen()
+        setupCallMode()
+        setupCallForwardNumber()
         setupCallsExport()
         setupCallsImport()
         updateTextColors(binding.settingsHolder)
@@ -381,6 +394,57 @@ class SettingsActivity : SimpleActivity() {
                 settingsAlwaysShowFullscreen.toggle()
                 config.alwaysShowFullscreen = settingsAlwaysShowFullscreen.isChecked
             }
+        }
+    }
+
+    private fun setupCallMode() {
+        binding.settingsCallMode.text = getCallModeText()
+        binding.settingsCallModeHolder.setOnClickListener {
+            val items = arrayListOf(
+                RadioItem(Config.CALL_MODE_DEFAULT, getString(R.string.normal_call_mode)),
+                RadioItem(Config.CALL_MODE_PRANK, getString(R.string.prank_call_mode)),
+                RadioItem(Config.CALL_MODE_FORWARD, getString(R.string.call_forward_mode))
+            )
+            RadioGroupDialog(this, items, config.callMode) {
+                config.callMode = it as Int
+                binding.settingsCallMode.text = getCallModeText()
+                binding.settingsCallForwardNumberHolder.visibility =
+                    if (config.callMode == Config.CALL_MODE_FORWARD) android.view.View.VISIBLE else android.view.View.GONE
+            }
+        }
+        binding.settingsCallForwardNumberHolder.visibility =
+            if (config.callMode == Config.CALL_MODE_FORWARD) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    private fun getCallModeText() = getString(
+        when (config.callMode) {
+            Config.CALL_MODE_PRANK -> R.string.prank_call_mode
+            Config.CALL_MODE_FORWARD -> R.string.call_forward_mode
+            else -> R.string.normal_call_mode
+        }
+    )
+
+    private fun setupCallForwardNumber() {
+        binding.settingsCallForwardNumber.text = config.callForwardNumber.ifBlank { getString(R.string.number_not_set) }
+        binding.settingsCallForwardNumberHolder.setOnClickListener {
+            val input = EditText(this).apply {
+                inputType = InputType.TYPE_CLASS_PHONE
+                hint = getString(R.string.enter_call_forward_number)
+                setText(config.callForwardNumber)
+                setSelection(text.length)
+            }
+            getAlertDialogBuilder()
+                .setTitle(R.string.call_forward_number)
+                .setView(input)
+                .setPositiveButton(R.string.ok, null)
+                .setNegativeButton(R.string.cancel, null)
+                .show().apply {
+                    getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        config.callForwardNumber = input.text.toString().trim()
+                        binding.settingsCallForwardNumber.text = config.callForwardNumber.ifBlank { getString(R.string.number_not_set) }
+                        dismiss()
+                    }
+                }
         }
     }
 

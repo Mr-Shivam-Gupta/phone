@@ -1,9 +1,34 @@
 package org.fossify.phone.activities
 
+import android.os.Bundle
 import org.fossify.commons.activities.BaseSimpleActivity
 import org.fossify.phone.R
+import org.fossify.phone.helpers.AppValidity
+import org.fossify.phone.helpers.showExpiredScreen
 
 open class SimpleActivity : BaseSimpleActivity() {
+    protected var appExpired = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        appExpired = AppValidity.isExpired()
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
+        if (appExpired) {
+            showExpiredScreen()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (AppValidity.isExpired()) {
+            appExpired = true
+            showExpiredScreen()
+        }
+    }
+
     override fun getAppIconIDs() = arrayListOf(
         R.mipmap.ic_launcher_red,
         R.mipmap.ic_launcher_pink,

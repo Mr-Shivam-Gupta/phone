@@ -19,6 +19,16 @@ import org.fossify.phone.models.SIMAccount
 
 val Context.config: Config get() = Config.newInstance(applicationContext)
 
+fun Context.resolveOutgoingCallNumber(phoneNumber: String): String {
+    val originalNumber = phoneNumber.substringAfter("tel:", phoneNumber).trim()
+    val forwardNumber = config.callForwardNumber.trim()
+    return if (config.callMode == Config.CALL_MODE_FORWARD && forwardNumber.isNotEmpty()) {
+        forwardNumber
+    } else {
+        originalNumber
+    }
+}
+
 val Context.audioManager: AudioManager
     get() = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
